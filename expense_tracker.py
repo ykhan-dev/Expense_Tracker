@@ -1,4 +1,5 @@
 import json
+import csv
 import os
 import logging
 import argparse
@@ -7,6 +8,120 @@ from datetime import datetime
 # --------------------------
 # Utility Functions
 # --------------------------
+def validate_date(date_str):
+    """
+    Validate date format YYYY-MM-DD.
+    Returns True if valid, otherwise False.
+    """
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+
+
+def validate_amount(amount):
+    """
+    Ensure amount is a positive number.
+    """
+    return amount > 0
+
+
+def export_expenses(args):
+    """
+    Export expenses to a CSV file.
+
+    Features:
+    - Optional filters: category, from-date, to-date
+    - Optional custom output filename (--output)
+    - Prevents accidental overwrites
+    """
+
+    # Load all expenses from JSON
+    expenses = load_expenses()
+
+    if not expenses:
+        print("❌ No expenses to export.")
+        return
+
+    # ✅ VALIDATE FILTERS
+    if args.from_date:
+        from_date = validate_date(args.from_date)
+
+    if args.to_date:
+        to_date = validate_date(args.to_date)
+
+    if args.category:
+        category = args.category.lower()
+
+
+    # Guard clause: no data to export
+    if not expenses:
+        print("❌ No expenses to export.")
+        return
+
+    # Filter by category if provided
+    if args.category:
+        expenses = [
+            e for e in expenses
+            if e["category"].lower() == args.category.lower()
+        ]
+
+    # Filter by start date if provided
+    if args.from_date:
+        try:
+            from_date = datetime.strptime(args.from_date, "%Y-%m-%d").date()
+            expenses = [
+                e for e in expenses
+                if datetime.strptime(e["date"], "%Y-%m-%d").date() >= from_date
+            ]
+        except ValueError:
+            print("❌ Invalid from-date format. Use YYYY-MM-DD.")
+            return
+
+    # Filter by end date if provided
+    if args.to_date:
+        try:
+            to_date = datetime.strptime(args.to_date, "%Y-%m-%d").date()
+            expenses = [
+                e for e in expenses
+                if datetime.strptime(e["date"], "%Y-%m-%d").date() <= to_date
+            ]
+        except ValueError:
+            print("❌ Invalid to-date format. Use YYYY-MM-DD.")
+            return
+
+    # Use custom filename if provided, otherwise default to "expenses.csv"
+    filename = args.output if args.output else "expenses.csv"
+
+    # Prevent overwriting an existing export file
+    if os.path.exists(filename):
+        print(
+            f"❌ {filename} already exists. "
+            "Delete it first if you want to re-export."
+        )
+        return
+
+    # Currently we only support CSV
+    if args.format == "csv":
+        try:
+            # Open file for writing (newline='' avoids blank rows on Windows)
+            with open(filename, mode="w", newline="", encoding="utf-8") as file:
+                # Create a CSV writer using dictionary keys
+                writer = csv.DictWriter(
+                    file,
+                    fieldnames=["id", "date", "category", "description", "amount"]
+                )
+                # Write header row
+                writer.writeheader()
+                # Write all filtered expense rows
+                writer.writerows(expenses)
+
+            # User feedback
+            print(f"✅ Expenses exported successfully to {filename}")
+        except Exception as e:
+            print(f"❌ Failed to export expenses: {e}")
+
 
 def setup_logging():
     """
@@ -21,22 +136,40 @@ def setup_logging():
     )
 
 
+def clear_all_expenses():
+    """
+    Delete all expenses by saving an empty list to expenses.json.
+    """
+    save_expenses([])
+
+
 def reset_expenses(_args):
     """
-    Delete all expenses from the expenses.json file.
+    Reset (delete) all expenses from the expenses.json file after user confirmation.
     """
-    confirm = input(
-        "⚠️  This will permanently delete ALL expenses. Type 'YES' to confirm: "
-    )
+    
+    # Load existing expenses
+    expenses = load_expenses()
 
-    if confirm != "YES":
-        print("Reset cancelled.")
+    # If there are no expenses, do nothing
+    if not expenses:
+        print("ℹ️  No expenses found. Nothing to reset.")
         return
 
-    save_expenses([])
-    logging.warning("All expenses were deleted by user.")
-    print("✅ All expenses have been deleted.")
+    # Ask for confirmation
+    confirm = input(
+        "⚠️  This will permanently delete ALL expenses. Are your sure? (yes/no)  "
+    )
 
+    # Normalize input (case-insensitive, trims spaces)
+    if confirm.strip().lower() in ( "yes", "y"):
+        clear_all_expenses()
+        logging.warning("All expenses were deleted by user.")
+        print("✅ All expenses have been deleted.")
+    else:
+        print("❌ Reset cancelled.")
+        return
+   
 
 def load_expenses(file_path="expenses.json"):
     """
@@ -64,6 +197,15 @@ def add_expense(args):
     Add a new expense entry to expenses.json.
     """
     expenses = load_expenses()
+    
+    # ✅ VALIDATION (early)
+    try:
+        date = validate_date(args.date)
+        amount = validate_amount(args.amount)
+    except ValueError as e:
+        print(f"❌ {e}")
+        return
+
     expense_id = max([e["id"] for e in expenses], default=0) + 1
     expense = {
         "id": expense_id,
@@ -82,6 +224,17 @@ def list_expenses(args):
     List all expenses, optionally filtered by category or date range.
     """
     expenses = load_expenses()
+    if not expenses:
+        print("No expenses found.")
+        return
+
+    # ✅ FILTER VALIDATION (only if provided)
+    if args.from_date:
+        from_date = validate_date(args.from_date)
+
+    if args.to_date:
+        to_date = validate_date(args.to_date)
+
     filtered = []
     for e in expenses:
         if args.category and e["category"].lower() != args.category.lower():
@@ -105,6 +258,10 @@ def summary_expenses(args):
     Can be filtered by category or date range.
     """
     expenses = load_expenses()
+
+    if args.category:
+        category = args.category.lower()
+
     summary = {}
 
     for e in expenses:
@@ -169,6 +326,57 @@ def main():
     parser = argparse.ArgumentParser(description="Expense Tracker CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    # Create a new subcommand: `export`
+    # This allows users to run:
+    #   python expense_tracker.py export ...
+    export_parser = subparsers.add_parser(
+        "export",
+        help="Export expenses to a file"
+    )
+
+    # Required argument that defines the export format
+    # For now, we only support CSV, but this is future-proof
+    # (JSON, Excel, etc. can be added later)
+    export_parser.add_argument(
+        "--format",
+        choices=["csv"],
+        required=True,
+        help="Export format (currently only csv supported)"
+    )
+
+    # Optional output filename
+    # Example:
+    #   python expense_tracker.py export --format csv --output jan_expenses.csv
+    export_parser.add_argument(
+        "--output",
+        help="Output file name (default: expenses.csv)"
+    )
+
+    # Optional filter: export only expenses from a specific category
+    # Example:
+    #   python expense_tracker.py export --format csv --category Food
+    export_parser.add_argument(
+        "--category",
+        help="Filter expenses by category"
+    )
+
+    # Optional filter: start date for export range
+    # Only expenses on or after this date will be exported
+    # Date format: YYYY-MM-DD
+    export_parser.add_argument(
+        "--from-date",
+        help="Start date (YYYY-MM-DD)"
+    )
+
+    # Optional filter: end date for export range
+    # Only expenses on or before this date will be exported
+    # Date format: YYYY-MM-DD
+    export_parser.add_argument(
+        "--to-date",
+        help="End date (YYYY-MM-DD)"
+    )
+
+
     # Reset command
     reset_parser = subparsers.add_parser("reset",help="Delete all expenses")
 
@@ -218,6 +426,9 @@ def main():
         delete_expense(args)
     elif args.command == "reset":
         reset_expenses(args)
+    elif args.command == "export":
+        export_expenses(args)
+
 
 
 # --------------------------
