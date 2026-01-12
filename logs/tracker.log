@@ -1,0 +1,21 @@
+2026-01-04 16:01:32.456480 | Added expense: {'id': 4, 'category': 'Food', 'description': 'Lunch at office cafeteria', 'amount': 12.5, 'date': '2026-01-04'}
+2026-01-04 16:02:03.936574 | Added expense: {'id': 5, 'category': 'Transport', 'description': 'Uber ride to client meeting', 'amount': 18.75, 'date': '2026-01-04'}
+2026-01-04 16:02:22.374375 | Added expense: {'id': 6, 'category': 'Utilities', 'description': 'Internet bill - monthly', 'amount': 55.0, 'date': '2026-01-04'}
+2026-01-04 16:02:40.444750 | Added expense: {'id': 7, 'category': 'Software', 'description': 'VS Code extension subscription', 'amount': 9.99, 'date': '2026-01-04'}
+2026-01-04 16:04:01.745409 | Updated expense ID: 2
+2026-01-04 18:35:47.073124 | Deleted expense ID: 1
+2026-01-04 18:36:09.163947 | Deleted expense ID: 1
+2026-01-04 18:36:16.549364 | Deleted expense ID: 1
+2026-01-04 18:37:23.356009 | Updated expense ID: 2
+2026-01-06 09:02:25,906 - WARNING - All expenses were deleted by user.
+2026-01-06 09:04:10,638 - WARNING - All expenses were deleted by user.
+2026-01-06 09:10:06,166 - WARNING - All expenses were deleted by user.
+2026-01-08 11:10:24,192 - INFO - Added expense: {'id': 11, 'date': '2025-01-01', 'category': 'Food', 'description': 'Lunch', 'amount': 12.5}
+2026-01-08 11:52:53,385 - WARNING - All expenses were deleted by user.
+2026-01-08 11:52:53,387 - WARNING - All expenses were deleted by user.
+2026-01-08 11:54:08,569 - WARNING - All expenses were deleted by user.
+2026-01-08 11:54:08,570 - WARNING - All expenses were deleted by user.
+2026-01-08 11:55:48,911 - WARNING - All expenses were deleted by user.
+2026-01-08 11:55:48,911 - WARNING - All expenses were deleted by user.
+2026-01-08 11:56:50,350 - WARNING - All expenses were deleted by user.
+2026-01-08 12:06:07,053 - WARNING - All expenses were deleted by user.
