@@ -1,16 +1,84 @@
-# React + Vite
+# Expense Tracker (Full Stack)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack Expense Tracker application built with **React + Vite** on the frontend and **FastAPI** on the backend. The app supports secure authentication, expense CRUD operations, category-based summaries, and a clean UI.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**Frontend (React + Vite)**  
+- User login with JWT authentication  
+- Add, edit, and delete expenses  
+- Category-based color coding  
+- Expense summary by category and total  
+- Loading and empty states  
+- Clean, responsive UI  
 
-## React Compiler
+**Backend (FastAPI)**  
+- JWT-based authentication  
+- Secure expense CRUD APIs  
+- User-scoped expense data  
+- SQLite-backed persistence  
+- Clean API structure ready for deployment  
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
+- Frontend: React, Vite, CSS  
+- Backend: FastAPI, Python  
+- Authentication: JWT  
+- Database: SQLite  
 
-## Expanding the ESLint configuration
+## Project Structure
+Expense_Tracker/
+├── expense-tracker-frontend/
+│   ├── public/
+│   ├── src/
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+└── Expense_Tracker_Backend/
+    ├── app/
+    ├── main.py
+    ├── requirements.txt
+    └── database.db
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Running Locally
+
+**Backend**
+```
+cd Expense_Tracker_Backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+Backend runs at `http://127.0.0.1:8000`
+
+**Frontend**
+```
+cd expense-tracker-frontend
+npm install
+npm run dev
+```
+Frontend runs at `http://localhost:5173`
+
+## Authentication Flow
+- User logs in via the frontend  
+- Backend returns a JWT access token  
+- Token is stored in `localStorage`  
+- All protected expense routes require `Authorization: Bearer <token>`  
+
+## Expense Features
+- Add expenses with title, category, and amount  
+- Edit existing expenses  
+- Delete expenses  
+- View category-wise totals  
+- View overall total spending  
+
+## Future Enhancements
+- Monthly and yearly reports  
+- Charts and visual analytics  
+- Export expenses to CSV  
+- Pagination and filtering  
+- Cloud deployment (Docker / AWS / Render)  
+
+## Author
+**Yousuf Khan**  
+Full-Stack Software Developer
